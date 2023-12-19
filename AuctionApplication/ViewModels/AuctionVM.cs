@@ -11,9 +11,11 @@ using Auction = AuctionApplication.Core.Auction;
         public string Description { get; set; }
         public int AuctionStatus { get; set; }
 
-        public static AuctionVM FromAuction(Auction auction)
+        public List<BidVM> BidVMs { get; set; } = new();
+
+    public static AuctionVM FromAuction(Auction auction)
         {
-            return new AuctionVM()
+            AuctionVM vm = new AuctionVM()
             {
                 Id = auction.Id,
                 Name = auction.Name,
@@ -22,10 +24,17 @@ using Auction = AuctionApplication.Core.Auction;
                 Deadline = auction.Deadline,
                 Description = auction.Description,
                 AuctionStatus = (int)auction.AuctionStatus
-               
-
+              
             };
-        }
+
+            foreach (var bid in auction.Bids)
+            {
+            vm.BidVMs.Add(BidVM.FromBid(bid));
+            }
+
+            return vm;
+
+    }
 
    }
 

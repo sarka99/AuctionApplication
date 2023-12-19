@@ -14,7 +14,7 @@ builder.Services.AddScoped<IAuctionService, AuctionService>();
 builder.Services.AddDbContext<AuctionDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("AuctionDbConnection")));
 
 builder.Services.AddDbContext<AuctionApplicationIdentityContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("AuctionApplicationIdentityContextConnection")));
-builder.Services.AddDefaultIdentity<AuctionApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+builder.Services.AddDefaultIdentity<AuctionApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
     .AddEntityFrameworkStores<AuctionApplicationIdentityContext>();
 
 builder.Services.AddScoped<IAuctionPersistence, AuctionSqlPersistence>();

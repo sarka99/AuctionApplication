@@ -22,15 +22,16 @@ namespace AuctionApplication.ViewModels
         public int AuctionId { get; set; }
 
         public static BidVM FromBid(Bid bid)
-    {
+        {
             return new BidVM()
             {
                 Id = bid.Id,
+                AuctionId = bid.AuctionId,
                 Bidder = bid.Bidder,
                 Amount = bid.Amount,
-
-        };
-    }
+                BidTime = bid.BidTime
+            };
+        }
     }
  
 }

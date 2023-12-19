@@ -1,10 +1,10 @@
 ﻿@model IEnumerable<AuctionApplication.ViewModels.AuctionVM>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "ViewYourAuctions";
 }
 
-<h1>Index</h1>
+<h1>ViewYourAuctions</h1>
 
 <p>
     <a asp-action="Create">Create New</a>
@@ -30,7 +30,7 @@
             <th>
                 @Html.DisplayNameFor(model => model.Description)
             </th>
-           
+            
             <th></th>
         </tr>
     </thead>
@@ -55,9 +55,11 @@
             <td>
                 @Html.DisplayFor(modelItem => item.Description)
             </td>
-            
+          
             <td>
-                @Html.ActionLink("Details", "Details", new { id = item.Id })
+                @Html.ActionLink("EditDescr", "EditDescr", new {id =  item.Id}) |
+                @Html.ActionLink("Details", "Details", new { id = item.Id}) 
+             
             </td>
         </tr>
 }

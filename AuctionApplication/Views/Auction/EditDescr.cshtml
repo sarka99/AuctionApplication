@@ -1,25 +1,23 @@
-﻿@model AuctionApplication.ViewModels.BidVM
+﻿@model AuctionApplication.ViewModels.EditDescrVm
 
 @{
-    ViewData["Title"] = "PlaceBid";
+    ViewData["Title"] = "EditDescr";
 }
 
-<h1>PlaceBid</h1>
+<h1>EditDescr</h1>
 
-<h4>BidVM</h4>
+<h4>EditDescrVm</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="PlaceBid">
+        <form asp-action="EditDescr">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-        
-       
+            
             <div class="form-group">
-                <label asp-for="Amount" class="control-label"></label>
-                <input asp-for="Amount" class="form-control" />
-                <span asp-validation-for="Amount" class="text-danger"></span>
+                <label asp-for="NewDescr" class="control-label"></label>
+                <input asp-for="NewDescr" class="form-control" />
+                <span asp-validation-for="NewDescr" class="text-danger"></span>
             </div>
-           
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
             </div>

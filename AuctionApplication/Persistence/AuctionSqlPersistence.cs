@@ -12,38 +12,43 @@ namespace AuctionApplication.Persistence
     public class AuctionSqlPersistence : IAuctionPersistence
     {
         private  AuctionDbContext _dbContext;
-     
+        private readonly ILogger<AuctionSqlPersistence> _logger;
 
-        public AuctionSqlPersistence(AuctionDbContext dbContext)
+
+
+        public AuctionSqlPersistence(AuctionDbContext dbContext, ILogger<AuctionSqlPersistence> logger)
         {
             _dbContext = dbContext;
-         
+            _logger = logger;
+
         }
 
         public bool CreateAuction(Auction auction)
         {
             //proper
-            try
-            {
+           
                 var auctionDb = new AuctionDb
                 {
                     Name = auction.Name,
                     Owner = auction.Owner,
+                    UserName = auction.Owner,
                     StartingPrice = auction.StartingPrice,
                     Deadline = auction.Deadline,
                     Description = auction.Description,
-                    AuctionStatus = (int)Status.ON_GOING // Assuming Status is an enum
+                    AuctionStatus = (int)Status.ON_GOING, // Assuming Status is an enum,
+               
+
+
                 };
+                Console.WriteLine("name of product is:" + auction.Name);
+                Console.WriteLine("owner is:" + auction.Owner);
+            Console.WriteLine("username is:" + auction.Name);
 
                 _dbContext.AuctionDbs.Add(auctionDb);
                 _dbContext.SaveChanges();
                 
                 return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
+            
         }
 
         public List<Auction> GetAllActiveBiddenAuctionsByUser(string userName)
@@ -61,7 +66,7 @@ namespace AuctionApplication.Persistence
             {
                 if (adb.BidDbs.Any(b => b.Bidder == userName))
                 {
-                    Auction auction = new Auction(adb.Name, adb.Owner, adb.StartingPrice, adb.Deadline, (Status)adb.AuctionStatus, adb.Description);
+                    Auction auction = new Auction(adb.Id, adb.Name, adb.Owner, adb.StartingPrice, adb.Deadline, (Status)adb.AuctionStatus, adb.Description);
                     result.Add(auction);
                 }
                          
@@ -82,12 +87,34 @@ namespace AuctionApplication.Persistence
             
             foreach(AuctionDb adb in auctionDbs)
             {
-                Auction auction = new Auction(adb.Name, adb.Owner, adb.StartingPrice, adb.Deadline, (Status)adb.AuctionStatus, adb.Description);
+                Auction auction = new Auction(adb.Id, adb.Name, adb.Owner, adb.StartingPrice, adb.Deadline, (Status)adb.AuctionStatus, adb.Description);
                 result.Add(auction);
             }
 
             return result;
         }
+       public List<Auction> GetActiveOngoingAuctions()
+{
+    var currentTime = DateTime.Now;
+
+    var auctionDbs = _dbContext.AuctionDbs
+        .Include(a => a.BidDbs)
+        .Where(a => a.Deadline > currentTime)
+         .OrderBy(a => a.Deadline) // Order by the deadline in ascending order (earliest first)
+
+        .ToList();
+
+    List<Auction> result = new List<Auction>();
+
+    foreach (AuctionDb adb in auctionDbs)
+    {
+        Auction auction = new Auction(adb.Id, adb.Name, adb.Owner, adb.StartingPrice, adb.Deadline, (Status)adb.AuctionStatus, adb.Description);
+        result.Add(auction);
+    }
+
+    return result;
+}
+
 
         public Auction GetAuctionById(int id)
         {
@@ -101,11 +128,11 @@ namespace AuctionApplication.Persistence
             }
 
             var bidsDbs = _dbContext.BidDbs.Where(b => b.AuctionId == id).ToList();
-            Auction auction = new Auction(auctionDbs.Name, auctionDbs.Owner, auctionDbs.StartingPrice, auctionDbs.Deadline, (Status)auctionDbs.AuctionStatus, auctionDbs.Description);
+            Auction auction = new Auction(auctionDbs.Id, auctionDbs.Name, auctionDbs.Owner, auctionDbs.StartingPrice, auctionDbs.Deadline, (Status)auctionDbs.AuctionStatus, auctionDbs.Description);
 
             foreach (var bid in bidsDbs)
             {
-                auction.addBid(new Bid(bid.Bidder, bid.Amount, bid.BidTime));
+                auction.addBid(new Bid(bid.Id,bid.Bidder, bid.Amount, bid.BidTime));
             }
 
             return auction;
@@ -133,81 +160,89 @@ namespace AuctionApplication.Persistence
                 if (highestBid != null && highestBid.Bidder == userName)
                 {
                    
-                    result.Add(new Auction(adb.Name, adb.Owner,adb.StartingPrice,adb.Deadline, (Status)adb.AuctionStatus,adb.Description));
+                    result.Add(new Auction(adb.Id, adb.Name, adb.Owner,adb.StartingPrice,adb.Deadline, (Status)adb.AuctionStatus,adb.Description));
                 }
             }
 
             return result;
         }
 
-        public List<Auction> GetOnGoingAuctions(List<Auction> auctions)
-        {
-          
-            var currentTime = DateTime.Now;
-
-            var ongoingAuctions = auctions.Where(a => a.Deadline > currentTime).ToList();
-            return ongoingAuctions;
-        }
-
-        public bool PlaceBid(Bid bid)
-        {
-            //Fel ya hmar
-       
-
-            var auctionDb = _dbContext.AuctionDbs.Include(a => a.BidDbs).FirstOrDefault(a => a.Id == bid.Id);
-            if (auctionDb == null)
-            {
-                return false; // Auction not found
-            }
-
-            if (auctionDb.Deadline <= DateTime.Now)
-            {
-                return false; // Auction has already ended
-            }
-
-            if (bid.Amount <= auctionDb.StartingPrice)
-            {
-                return false; // Bid amount must be higher than the starting price
-            }
-
-            // Create a new BidDb object
-            BidDb newBid = new(bid.Bidder, bid.Amount, bid.BidTime);
-
-            // If the collection is not initialized, create a new list
-            if (auctionDb.BidDbs == null)
-            {
-                auctionDb.BidDbs = new List<BidDb>();
-            }
-
-            // Add the newBid to the collection
-            _dbContext.BidDbs.Add(newBid);
   
-            _dbContext.SaveChanges();
-
-            return true;
-        }
-
-            public bool UpdateDescription(Auction auction)
+            public bool UpdateDescription(int id,string newDescr, string owner)
         {
            
-            var auctionDb = _dbContext.AuctionDbs.FirstOrDefault(a => a.Id == auction.Id);
+            var auctionDb = _dbContext.AuctionDbs.FirstOrDefault(a => a.Id == id);
 
             if (auctionDb == null)
             {
                 return false; 
 
             }
-            if(auction.Owner == auctionDb.Owner)
+            if(owner == auctionDb.Owner)
             {
-                auctionDb.Description = auction.Description;
+                auctionDb.Description = newDescr;
                 _dbContext.SaveChanges();
                 return true;
             }
 
             return false;
             
+        } 
+        
+        
+        public bool PlaceBid(Bid bid)
+        {
+            var theNewBid = new BidDb
+            {
+                AuctionId = bid.AuctionId,
+                Bidder = bid.Bidder,
+                Amount = bid.Amount,
+                BidTime = bid.BidTime,
+            };
+            Console.WriteLine("PlaceBid from persistence" + bid.Amount);
+            _dbContext.BidDbs.Add(theNewBid);
+            _dbContext.SaveChanges();
+            return true;
         }
 
-  
+        public bool IsBidPlaceAble(Bid bid, ref string msg)
+        {
+            var auctionDb = _dbContext.AuctionDbs
+                .Include(a => a.BidDbs)
+                .FirstOrDefault(a => a.Id == bid.AuctionId);
+
+            if (auctionDb == null)
+            {
+                msg = "Auction not found.";
+                return false; // Auction not found
+            }
+
+            if (auctionDb.Deadline <= DateTime.Now)
+            {
+                Console.WriteLine("IsBidPlaceAble deadline");
+                msg = "Auction deadline is exceeded.";
+                return false; // Auction has already ended
+            }
+
+            if (bid.Amount <= auctionDb.StartingPrice)
+            {
+                 Console.WriteLine("IsBidPlaceAble deadline");
+                msg = "Bid amount must be higher than or equal to the starting price.";
+                return false; // Bid amount must be higher than or equal to the starting price
+            }
+
+            if (auctionDb.BidDbs.Any(b => b.Bidder == bid.Bidder))
+            {
+                // If the bidder has already placed a bid in this auction, check if the new bid is higher
+                var highestBid = auctionDb.BidDbs.Max(b => b.Amount);
+                if (bid.Amount <= highestBid)
+                {
+                    msg = "New bid is not higher than the current highest bid.";
+                    return false; // New bid is not higher than the current highest bid
+                }
+            }
+
+            return true;
+        }
     }
 }

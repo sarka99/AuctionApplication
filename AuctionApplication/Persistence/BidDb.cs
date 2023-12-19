@@ -19,6 +19,10 @@ namespace AuctionApplication.Persistence
             AuctionId = auctionId;
             Id = id;
         }
+        public BidDb()
+        {
+            // Parameterless constructor
+        }
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; } // Added a setter

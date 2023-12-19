@@ -14,8 +14,9 @@
         public List<Bid> Bids { get;}
         public Status AuctionStatus;
         public int Id { get; }
-        public Auction(string name, string owner, double startingPrice, DateTime deadline, Status status, string description)
+        public Auction(int id, string name, string owner, double startingPrice, DateTime deadline, Status status, string description)
         {
+            Id = id;
             Name = name;
             Owner = owner;
             StartingPrice = startingPrice;

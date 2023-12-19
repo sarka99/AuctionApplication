@@ -13,7 +13,7 @@ namespace AuctionApplication.Core
 
         public bool CreateAuction(Auction auction)
         {
-            if (auction == null || auction.Id != 0 ) throw new InvalidDataException();
+            //if (auction == null || auction.Id != 0 ) throw new InvalidDataException();
             return _auctionPersistence.CreateAuction(auction);          
         }
 
@@ -25,6 +25,10 @@ namespace AuctionApplication.Core
         public List<Auction> GetAllTheUsersAuctions(string userName)
         {
            return _auctionPersistence.GetAllTheUsersAuctions(userName);
+        }
+        public List<Auction> GetActiveOngoingAuctions()
+        {
+            return _auctionPersistence.GetActiveOngoingAuctions();
         }
 
         public Auction GetAuctionById(int id)
@@ -38,21 +42,33 @@ namespace AuctionApplication.Core
          
         }
 
-        public List<Auction> GetOnGoingAuctions(List<Auction> auctions)
+      
+
+      
+
+        public bool UpdateDescription(int id,string descr,string owner)
         {
-            return _auctionPersistence.GetOnGoingAuctions(auctions);
+            return _auctionPersistence.UpdateDescription(id,descr,owner);
         }
 
-        public bool PlaceBid(Bid bid)
-        {
-           
-            return _auctionPersistence.PlaceBid(bid);
-           
-        }
+  
 
-        public bool UpdateDescription(Auction auction)
+
+        public bool PlaceBid(Bid bid, ref string msg)
         {
-            return _auctionPersistence.UpdateDescription(auction);
+            
+            if(_auctionPersistence.IsBidPlaceAble(bid, ref msg)) { 
+            _auctionPersistence.PlaceBid(bid);
+                return true;
+
+            }
+            else
+            {
+                return false;
+            }
+                
+            
+            
         }
     }
 }
